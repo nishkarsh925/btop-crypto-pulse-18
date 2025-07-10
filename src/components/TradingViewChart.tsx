@@ -88,10 +88,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         symbol: tradingViewSymbol,
         interval: interval,
         container: containerRef.current,
-        datafeed: new window.TradingView.Datafeeds.UDFCompatibleDatafeed(
-          "https://api.binance.com/api/v3"
-        ),
-        library_path: "/charting_library/",
         locale: "en",
         disabled_features: [
           "use_localstorage_for_settings",
@@ -101,19 +97,11 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           "header_chart_type",
           "header_compare",
           "header_undo_redo",
-          "header_settings",
-          "left_toolbar",
-          "control_bar",
-          "timeframes_toolbar"
+          "header_settings"
         ],
         enabled_features: [
-          "study_templates",
-          "side_toolbar_in_fullscreen_mode"
+          "study_templates"
         ],
-        charts_storage_url: "https://saveload.tradingview.com",
-        charts_storage_api_version: "1.1",
-        client_id: "tradingview.com",
-        user_id: "public_user_id",
         fullscreen: false,
         theme: theme,
         style: "1",
