@@ -29,142 +29,40 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [priceChange, setPriceChange] = useState<number>(0);
 
-  // Load TradingView library
+  // Load TradingView Advanced Charts widget
   useEffect(() => {
     const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
     script.async = true;
-    script.onload = () => {
-      console.log('TradingView library loaded successfully');
-      initializeChart();
-    };
-    script.onerror = () => {
-      setError('Failed to load TradingView library');
-      setIsLoading(false);
-    };
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: `BINANCE:${symbol.toUpperCase()}USDT`,
+      interval: interval,
+      timezone: "Etc/UTC",
+      theme: theme,
+      style: "1",
+      locale: "en",
+      backgroundColor: theme === 'dark' ? "#0f172a" : "#ffffff",
+      gridColor: theme === 'dark' ? "#374151" : "#e5e7eb",
+      allow_symbol_change: false,
+      hide_top_toolbar: false,
+      hide_legend: false,
+      save_image: false,
+      container_id: "tradingview_chart"
+    });
     
-    document.head.appendChild(script);
+    if (containerRef.current) {
+      containerRef.current.appendChild(script);
+      setIsLoading(false);
+      setIsConnected(true);
+    }
 
     return () => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
       }
-      if (widgetRef.current) {
-        try {
-          widgetRef.current.remove();
-        } catch (e) {
-          console.log('Widget cleanup error:', e);
-        }
-      }
     };
-  }, []);
-
-  // Initialize chart when symbol or interval changes
-  useEffect(() => {
-    if (window.TradingView && containerRef.current) {
-      initializeChart();
-    }
   }, [symbol, interval, theme]);
-
-  const initializeChart = () => {
-    if (!containerRef.current || !window.TradingView) return;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Clear existing widget
-      if (widgetRef.current) {
-        widgetRef.current.remove();
-      }
-
-      // Convert symbol to TradingView format (e.g., BTC -> BTCUSDT)
-      const tradingViewSymbol = `BINANCE:${symbol.toUpperCase()}USDT`;
-
-      console.log(`Initializing TradingView chart for ${tradingViewSymbol}`);
-
-      const widget = new window.TradingView.widget({
-        autosize: true,
-        symbol: tradingViewSymbol,
-        interval: interval,
-        container: containerRef.current,
-        locale: "en",
-        disabled_features: [
-          "use_localstorage_for_settings",
-          "volume_force_overlay",
-          "header_symbol_search",
-          "header_screenshot",
-          "header_chart_type",
-          "header_compare",
-          "header_undo_redo",
-          "header_settings"
-        ],
-        enabled_features: [
-          "study_templates"
-        ],
-        fullscreen: false,
-        theme: theme,
-        style: "1",
-        toolbar_bg: theme === 'dark' ? '#1e293b' : '#ffffff',
-        loading_screen: {
-          backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff',
-          foregroundColor: theme === 'dark' ? '#64748b' : '#475569'
-        },
-        overrides: {
-          "paneProperties.background": theme === 'dark' ? "#0f172a" : "#ffffff",
-          "paneProperties.vertGridProperties.color": theme === 'dark' ? "#374151" : "#e5e7eb",
-          "paneProperties.horzGridProperties.color": theme === 'dark' ? "#374151" : "#e5e7eb",
-          "symbolWatermarkProperties.transparency": 90,
-          "scalesProperties.textColor": theme === 'dark' ? "#94a3b8" : "#475569",
-          "mainSeriesProperties.candleStyle.upColor": "#10b981",
-          "mainSeriesProperties.candleStyle.downColor": "#ef4444",
-          "mainSeriesProperties.candleStyle.drawWick": true,
-          "mainSeriesProperties.candleStyle.drawBorder": true,
-          "mainSeriesProperties.candleStyle.borderColor": "#374151",
-          "mainSeriesProperties.candleStyle.borderUpColor": "#10b981",
-          "mainSeriesProperties.candleStyle.borderDownColor": "#ef4444",
-          "mainSeriesProperties.candleStyle.wickUpColor": "#10b981",
-          "mainSeriesProperties.candleStyle.wickDownColor": "#ef4444",
-          "volumePaneSize": "medium"
-        },
-        studies_overrides: {
-          "volume.volume.color.0": "#ef4444",
-          "volume.volume.color.1": "#10b981"
-        }
-      });
-
-      widget.onChartReady(() => {
-        console.log('TradingView chart ready');
-        setIsLoading(false);
-        setIsConnected(true);
-
-        // Subscribe to real-time data
-        widget.subscribe('onTick', (data: any) => {
-          if (data && data.price) {
-            setCurrentPrice(data.price);
-            setPriceChange(data.change || 0);
-          }
-        });
-
-        // Get current symbol info
-        widget.symbolInfo((symbolInfo: any) => {
-          console.log('Symbol info:', symbolInfo);
-          if (symbolInfo) {
-            setCurrentPrice(symbolInfo.last_price || 0);
-            setPriceChange(symbolInfo.change || 0);
-          }
-        });
-      });
-
-      widgetRef.current = widget;
-
-    } catch (err) {
-      console.error('Error initializing TradingView chart:', err);
-      setError('Failed to initialize TradingView chart. Using fallback data.');
-      setIsLoading(false);
-      setIsConnected(false);
-    }
-  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -258,7 +156,8 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         )}
         
         <div 
-          ref={containerRef} 
+          ref={containerRef}
+          id="tradingview_chart"
           className="w-full rounded-b-lg"
           style={{ height: '500px' }}
         />
