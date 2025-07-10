@@ -115,7 +115,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         client_id: "tradingview.com",
         user_id: "public_user_id",
         fullscreen: false,
-        autosize: true,
         theme: theme,
         style: "1",
         toolbar_bg: theme === 'dark' ? '#1e293b' : '#ffffff',
